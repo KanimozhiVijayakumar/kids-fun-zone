@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Fun Zone - Draw & Play!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .game-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background: #fff3cd;
+            flex-wrap: wrap;
+        }
+
+        .game-btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border: 4px solid #333;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #333;
+        }
+
+        .game-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #333;
+        }
+
+        .game-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #333;
+        }
+
+        .game-btn.active {
+            background: #4caf50;
+            color: white;
+        }
+
+        #drawBtn { background: #ff6b6b; color: white; }
+        #memoryBtn { background: #4ecdc4; color: white; }
+        #colorMatchBtn { background: #ffd93d; color: #333; }
+        #puzzleBtn { background: #a8dadc; color: #333; }
+        #countingBtn { background: #f1c40f; color: #333; }
+
+        .play-area {
+            padding: 30px;
+            min-height: 500px;
+        }
+
+        /* Drawing Tools */
+        .drawing-container {
+            display: none;
+        }
+
+        .drawing-container.active {
+            display: block;
+        }
+
+        .tools {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .color-btn.active {
+            border: 4px solid #000;
+            box-shadow: 0 0 0 3px #fff, 0 0 0 6px #000;
+        }
+
+        .brush-size {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .size-btn {
+            padding: 8px 15px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .size-btn.active {
+            background: #333;
+            color: white;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        #undoBtn { background: #95e1d3; }
+        #clearBtn { background: #f38181; color: white; }
+
+        #drawCanvas {
+            border: 5px solid #333;
+            border-radius: 15px;
+            cursor: crosshair;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Memory Game */
+        .memory-game {
+            display: none;
+        }
+
+        .memory-game.active {
+            display: block;
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .memory-card {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 4px solid #333;
+            border-radius: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .memory-card:hover {
+            transform: scale(1.05);
+        }
+
+        .memory-card.flipped {
+            background: white;
+        }
+
+        .memory-card.matched {
+            background: #4caf50;
+            cursor: default;
+        }
+
+        .card-front {
+            display: none;
+        }
+
+        .memory-card.flipped .card-front,
+        .memory-card.matched .card-front {
+            display: block;
+        }
+
+        .game-stats {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        /* Color Match Game */
+        .color-match-game {
+            display: none;
+            text-align: center;
+        }
+
+        .color-match-game.active {
+            display: block;
+        }
+
+        .target-color {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border: 5px solid #333;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .color-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .color-option {
+            width: 120px;
+            height: 120px;
+            border: 4px solid #333;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        /* Puzzle Game */
+        .puzzle-game {
+            display: none;
+        }
+
+        .puzzle-game.active {
+            display: block;
+            text-align: center;
+        }
+
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 5px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .puzzle-piece {
+            width: 100px;
+            height: 100px;
+            border: 3px solid #333;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+
+        .puzzle-piece:hover {
+            background: #f0f0f0;
+        }
+
+        .puzzle-piece.empty {
+            background: #ddd;
+            cursor: default;
+        }
+
+        /* Counting Game */
+        .counting-game {
+            display: none;
+            text-align: center;
+        }
+
+        .counting-game.active {
+            display: block;
+        }
+
+        .items-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            min-height: 200px;
+        }
+
+        .counting-item {
+            font-size: 4em;
+        }
+
+        .number-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .number-btn {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #333;
+            border-radius: 15px;
+            background: white;
+            font-size: 1.8em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .number-btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.1);
+        }
+
+        .feedback {
+            margin-top: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            min-height: 50px;
+        }
+
+        .correct { color: #4caf50; }
+        .incorrect { color: #f44336; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .game-btn { padding: 12px 20px; font-size: 1em; }
+            #drawCanvas { max-width: 100%; }
+            .memory-grid { grid-template-columns: repeat(4, 70px); }
+            .memory-card { width: 70px; height: 70px; font-size: 2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Kids Fun Zone! 🎮</h1>
+            <p>Draw, Play, and Have Fun!</p>
+        </header>
+
+        <div class="game-buttons">
+            <button class="game-btn active" id="drawBtn">🖍️ Draw</button>
+            <button class="game-btn" id="memoryBtn">🎴 Memory Match</button>
+            <button class="game-btn" id="colorMatchBtn">🌈 Color Match</button>
+            <button class="game-btn" id="puzzleBtn">🧩 Number Puzzle</button>
+            <button class="game-btn" id="countingBtn">🔢 Count & Click</button>
+        </div>
+
+        <div class="play-area">
+            <!-- Drawing Area -->
+            <div class="drawing-container active" id="drawingArea">
+                <div class="tools">
+                    <div class="color-palette">
+                        <div class="color-btn active" style="background: #ff6b6b;" data-color="#ff6b6b"></div>
+                        <div class="color-btn" style="background: #4ecdc4;" data-color="#4ecdc4"></div>
+                        <div class="color-btn" style="background: #45b7d1;" data-color="#45b7d1"></div>
+                        <div class="color-btn" style="background: #ffd93d;" data-color="#ffd93d"></div>
+                        <div class="color-btn" style="background: #6bcf7f;" data-color="#6bcf7f"></div>
+                        <div class="color-btn" style="background: #a78bfa;" data-color="#a78bfa"></div>
+                        <div class="color-btn" style="background: #f97316;" data-color="#f97316"></div>
+                        <div class="color-btn" style="background: #ec4899;" data-color="#ec4899"></div>
+                        <div class="color-btn" style="background: #333333;" data-color="#333333"></div>
+                        <div class="color-btn" style="background: white; border: 3px solid #333;" data-color="#ffffff"></div>
+                    </div>
+                    
+                    <div class="brush-size">
+                        <span style="font-weight: bold;">Size:</span>
+                        <button class="size-btn" data-size="5">Small</button>
+                        <button class="size-btn active" data-size="12">Medium</button>
+                        <button class="size-btn" data-size="25">Large</button>
+                    </div>
+
+                    <div class="action-btns">
+                        <button class="action-btn" id="undoBtn">↶ Undo</button>
+                        <button class="action-btn" id="clearBtn">✕ Clear</button>
+                    </div>
+                </div>
+                <canvas id="drawCanvas" width="800" height="500"></canvas>
+            </div>
+
+            <!-- Memory Match Game -->
+            <div class="memory-game" id="memoryGame">
+                <div class="game-stats">
+                    <div>Matches: <span id="matchCount">0</span> / 8 | Moves: <span id="moveCount">0</span></div>
+                </div>
+                <div class="memory-grid" id="memoryGrid"></div>
+            </div>
+
+            <!-- Color Match Game -->
+            <div class="color-match-game" id="colorMatchGame">
+                <h2>Match the Color!</h2>
+                <div class="target-color" id="targetColor"></div>
+                <div class="color-options" id="colorOptions"></div>
+                <div class="feedback" id="colorFeedback"></div>
+                <div class="game-stats">Score: <span id="colorScore">0</span></div>
+            </div>
+
+            <!-- Number Puzzle Game -->
+            <div class="puzzle-game" id="puzzleGame">
+                <h2>Arrange Numbers 1-8!</h2>
+                <div class="puzzle-grid" id="puzzleGrid"></div>
+                <div class="game-stats">Moves: <span id="puzzleMoves">0</span></div>
+                <button class="action-btn" onclick="initPuzzle()" style="margin-top: 20px;">🔄 New Puzzle</button>
+            </div>
+
+            <!-- Counting Game -->
+            <div class="counting-game" id="countingGame">
+                <h2>How Many Do You See?</h2>
+                <div class="items-container" id="itemsContainer"></div>
+                <div class="number-buttons" id="numberButtons"></div>
+                <div class="feedback" id="countingFeedback"></div>
+                <div class="game-stats">Score: <span id="countingScore">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Drawing functionality
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let currentColor = '#ff6b6b';
+        let brushSize = 12;
+        let drawHistory = [];
+
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        function saveState() {
+            drawHistory.push(canvas.toDataURL());
+            if (drawHistory.length > 20) drawHistory.shift();
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            saveState();
+            draw(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = brushSize;
+            
+            // Crayon texture effect
+            ctx.globalAlpha = 0.7 + Math.random() * 0.3;
+            
+            ctx.beginPath();
+            ctx.moveTo(x - 1, y - 1);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            ctx.globalAlpha = 1;
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.beginPath();
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        // Color picker
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentColor = btn.dataset.color;
+            });
+        });
+
+        // Brush size
+        document.querySelectorAll('.size-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                brushSize = parseInt(btn.dataset.size);
+            });
+        });
+
+        // Undo & Clear
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            if (drawHistory.length > 0) {
+                const img = new Image();
+                img.src = drawHistory.pop();
+                img.onload = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                };
+            }
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            saveState();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Game switching
+        const games = {
+            drawBtn: 'drawingArea',
+            memoryBtn: 'memoryGame',
+            colorMatchBtn: 'colorMatchGame',
+            puzzleBtn: 'puzzleGame',
+            countingBtn: 'countingGame'
+        };
+
+        Object.keys(games).forEach(btnId => {
+            document.getElementById(btnId).addEventListener('click', () => {
+                document.querySelectorAll('.game-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(btnId).classList.add('active');
+                
+                document.querySelectorAll('.drawing-container, .memory-game, .color-match-game, .puzzle-game, .counting-game')
+                    .forEach(g => g.classList.remove('active'));
+                document.getElementById(games[btnId]).classList.add('active');
+
+                if (btnId === 'memoryBtn') initMemoryGame();
+                if (btnId === 'colorMatchBtn') initColorMatch();
+                if (btnId === 'puzzleBtn') initPuzzle();
+                if (btnId === 'countingBtn') initCounting();
+            });
+        });
+
+        // Memory Match Game
+        const emojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+        let memoryCards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let moves = 0;
+
+        function initMemoryGame() {
+            matchedPairs = 0;
+            moves = 0;
+            flippedCards = [];
+            document.getElementById('matchCount').textContent = '0';
+            document.getElementById('moveCount').textContent = '0';
+            
+            memoryCards = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+            
+            const grid = document.getElementById('memoryGrid');
+            grid.innerHTML = '';
+            
+            memoryCards.forEach((emoji, i) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.innerHTML = `<div class="card-front">${emoji}</div>`;
+                card.dataset.emoji = emoji;
+                card.dataset.index = i;
+                card.addEventListener('click', flipCard);
+                grid.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (flippedCards.length === 2 || this.classList.contains('flipped') || this.classList.contains('matched')) return;
+            
+            this.classList.add('flipped');
+            flippedCards.push(this);
+            
+            if (flippedCards.length === 2) {
+                moves++;
+                document.getElementById('moveCount').textContent = moves;
+                
+                setTimeout(() => {
+                    if (flippedCards[0].dataset.emoji === flippedCards[1].dataset.emoji) {
+                        flippedCards.forEach(card => card.classList.add('matched'));
+                        matchedPairs++;
+                        document.getElementById('matchCount').textContent = matchedPairs;
+                        
+                        if (matchedPairs === 8) {
+                            setTimeout(() => alert('🎉 You Won! Great job!'), 300);
+                        }
+                    } else {
+                        flippedCards.forEach(card => card.classList.remove('flipped'));
+                    }
+                    flippedCards = [];
+                }, 800);
+            }
+        }
+
+        // Color Match Game
+        let colorScore = 0;
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffd93d', '#6bcf7f', '#a78bfa', '#f97316', '#ec4899'];
+
+        function initColorMatch() {
+            const targetColor = colors[Math.floor(Math.random() * colors.length)];
+            document.getElementById('targetColor').style.background = targetColor;
+            
+            const options = [targetColor];
+            while (options.length < 3) {
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                if (!options.includes(randomColor)) options.push(randomColor);
+            }
+            options.sort(() => Math.random() - 0.5);
+            
+            const container = document.getElementById('colorOptions');
+            container.innerHTML = '';
+            
+            options.forEach(color => {
+                const div = document.createElement('div');
+                div.className = 'color-option';
+                div.style.background = color;
+                div.addEventListener('click', () => checkColorMatch(color, targetColor));
+                container.appendChild(div);
+            });
+            
+            document.getElementById('colorFeedback').textContent = '';
+        }
+
+        function checkColorMatch(selected, target) {
+            const feedback = document.getElementById('colorFeedback');
+            if (selected === target) {
+                colorScore++;
+                document.getElementById('colorScore').textContent = colorScore;
+                feedback.textContent = '🎉 Correct!';
+                feedback.className = 'feedback correct';
+                setTimeout(initColorMatch, 1500);
+            } else {
+                feedback.textContent = '❌ Try Again!';
+                feedback.className = 'feedback incorrect';
+            }
+        }
+
+        // Number Puzzle Game
+        let puzzleState = [];
+        let emptyIndex = 8;
+        let puzzleMoves = 0;
+
+        function initPuzzle() {
+            puzzleState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+            puzzleMoves = 0;
+            document.getElementById('puzzleMoves').textContent = '0';
+            
+            // Shuffle
+            for (let i = 0; i < 100; i++) {
+                const validMoves = getValidMoves();
+                const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                [puzzleState[emptyIndex], puzzleState[randomMove]] = [puzzleState[randomMove], puzzleState[emptyIndex]];
+                emptyIndex = randomMove;
+            }
+            
+            renderPuzzle();
+        }
+
+        function getValidMoves() {
+            const moves = [];
+            const row = Math.floor(emptyIndex / 3);
+            const col = emptyIndex % 3;
+            
+            if (row > 0) moves.push(emptyIndex - 3);
+            if (row < 2) moves.push(emptyIndex + 3);
+            if (col > 0) moves.push(emptyIndex - 1);
+            if (col < 2) moves.push(emptyIndex + 1);
+            
+            return moves;
+        }
+
+        function renderPuzzle() {
+            const grid = document.getElementById('puzzleGrid');
+            grid.innerHTML = '';
+            
+            puzzleState.forEach((num, i) => {
+                const piece = document.createElement('div');
+                piece.className = num === 0 ? 'puzzle-piece empty' : 'puzzle-piece';
+                piece.textContent = num || '';
+                if (num !== 0) {
+                    piece.addEventListener('click', () => movePuzzlePiece(i));
+                }
+                grid.appendChild(piece);
+            });
+        }
+
+        function movePuzzlePiece(index) {
+            const validMoves = getValidMoves();
+            if (!validMoves.includes(index)) return;
+            
+            [puzzleState[emptyIndex], puzzleState[index]] = [puzzleState[index], puzzleState[emptyIndex]];
+            emptyIndex = index;
+            puzzleMoves++;
+            document.getElementById('puzzleMoves').textContent = puzzleMoves;
+            renderPuzzle();
+            
+            if (puzzleState.join('') === '123456780') {
+                setTimeout(() => alert('🎉 Puzzle Solved!'), 300);
+            }
+        }
+
+        // Counting Game
+        let countingScore = 0;
+        const countingEmojis = ['🍎', '⭐', '🎈', '🌸', '🦋', '🍓', '🌈', '🎨'];
+
+        function initCounting() {
+            const emoji = countingEmojis[Math.floor(Math.random() * countingEmojis.length)];
+            const count = Math.floor(Math.random() * 8) + 1;
+            
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const item = document.createElement('div');
+                item.className = 'counting-item';
+                item.textContent = emoji;
+                container.appendChild(item);
+            }
+            
+            const buttons = document.getElementById('numberButtons');
+            buttons.innerHTML = '';
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'number-btn';
+                btn.textContent = i;
+                btn.addEventListener('click', () => checkCount(i, count));
+                buttons.appendChild(btn);
+            }
+            
+            document.getElementById('countingFeedback').textContent = '';
+        }
+
+        function checkCount(selected, correct) {
+            const feedback = document.getElementById('countingFeedback');
+            if (selected === correct) {
+                countingScore++;
+                document.getElementById('countingScore').textContent = countingScore;
+                feedback.textContent = '🎉 Correct!';
+                feedback.className = 'feedback correct';
+                setTimeout(initCounting, 1500);
+            } else {
+                feedback.textContent = '❌ Try Again!';
+                feedback.className = 'feedback incorrect';
+            }
+        }
+
+        // Initialize first game
+        initMemoryGame();
+    </script>
+</body>
+</html>
